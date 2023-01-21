@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Custom Calendar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+    <style>
+      /* Add CSS for styling the calendar */
+    </style>
+  </head>
+  <body>
+    <div id="calendar"></div>
+    <div id="event-form" style="display:none;">
+      <form>
+        CET for: <span id="form-date"></span><br>
+        Duty platoon: <input type="text" id="platoon"><br>
+        <textarea id="schedule"></textarea><br>
+        <button type="button" onclick="saveEvent()">Save Event</button>
+        <button type="button" onclick="cancelEvent()">Cancel</button>
+      </form>
+    </div>
+    <script>
+      $(document).ready(function() {
+        $('#calendar').fullCalendar({
+          events: function(start, end, timezone, callback) {
+            var events = [];
+            var storedEvents = JSON.parse(localStorage.getItem("events")) || {};
+            for (var date in storedEvents) {
+              var event = storedEvents[date];
+              events.push({
+                title: event.platoon,
+                start: date,
+                schedule: event.schedule
+              });
+            }
+            callback(events);
+          },
+          eventClick: function(calEvent, jsEvent, view) {
+            document.getElementById("form-date").innerHTML = moment(calEvent.start).format("MMDDYY");
+            document.getElementById("platoon").value = calEvent.title;
+            document.getElementById("schedule").value = calEvent.schedule;
+            document.getElementById("event-form").style.display = "block";
+          }
+        });
+      });
+      function saveEvent() {
+        var date = moment(document.getElementById("form-date").innerHTML, "MMDDYY").format();
+        var platoon = document.getElementById("platoon").value;
+        var schedule = document.getElementById("schedule").value;
+
+        var storedEvents = JSON.parse(localStorage.getItem("events")) || {};
+        storedEvents[date] = {platoon: platoon, schedule: schedule};
+        localStorage.setItem("events", JSON.stringify(storedEvents));
+        document.getElementById("event-form").style.display = "none";
+        $('#calendar').fullCalendar('refetchEvents');
+      }
+      function cancelEvent() {
+        document.getElementById("event-form").style.display = "none";
+      }
+    </script>
+  </body>
+</html>
